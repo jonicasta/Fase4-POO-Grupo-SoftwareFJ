@@ -35,6 +35,11 @@ class ErrorReservaInvalida(Exception):             # Excepción personalizada pa
     def __init__(self, mensaje, causa=None):       # Constructor que acepta un mensaje y una causa (encadenamiento).
         super().__init__(mensaje)                  # Llama al constructor padre.
         registrar_error_log(f"ErrorReservaInvalida: {mensaje}", causa) # Escribe el error y la traza de la causa si existe.
+        class ErrorCancelacionInvalida(Exception):
+    """Excepción personalizada para errores en la cancelación o gestión de estados de reservas."""
+    def __init__(self, mensaje, causa=None):
+        super().__init__(mensaje)
+        registrar_error_log(f"ErrorCancelacionInvalida: {mensaje}", causa)
 
 # ------------------------------------------------------------------------------
 # 2. CLASES ABSTRACTAS (ABSTRACCIÓN Y HERENCIA)
@@ -202,6 +207,31 @@ class SistemaGestor:                               # Clase principal que adminis
         else:                                      # Si todo sale bien.
             print("✅ ÉXITO: Todo el proceso de reserva se ejecutó sin anomalías.") # Confirma.
 
+def cancelar_reserva(self, id_reserva):
+        """Método analítico del estudiante para cancelar una reserva existente aplicando validaciones y manejo de errores."""
+        print(f"\n--- Intentando cancelar la Reserva ID: {id_reserva} ---")
+        try:
+            reserva_encontrada = None
+            for r in self.reservas:
+                if r.id_reserva == id_reserva:
+                    reserva_encontrada = r
+                    break
+            
+            if not reserva_encontrada:
+                raise ErrorCancelacionInvalida(f"No se encontró ninguna reserva con el ID {id_reserva}.")
+            
+            if reserva_encontrada.estado == "Cancelada":
+                raise ErrorCancelacionInvalida(f"La reserva {id_reserva} ya se encuentra cancelada previamente.")
+                
+            reserva_encontrada.estado = "Cancelada"
+            reserva_encontrada.costo_total = 0.0
+        except ErrorCancelacionInvalida as e:
+            print(f"❌ ERROR CANCELACIÓN: {e}")
+        else:
+            print(f"✅ ÉXITO: Reserva {id_reserva} cancelada y costo recalculado correctamente.")
+        finally:
+            print("[Info] Proceso de cancelación finalizado.")
+            
 # --- EJECUCIÓN PRINCIPAL (Simulación de las 10 operaciones exigidas) ---
 if __name__ == "__main__":                         # Punto de entrada estándar en Python.
     # Instanciamos el sistema general
@@ -250,3 +280,9 @@ if __name__ == "__main__":                         # Punto de entrada estándar 
     for r in sistema.reservas:                     # Itera la lista.
         # Demuestra que el programa no se detuvo por los errores, sino que siguió ejecutando e imprimiendo la data.
         print(f"Reserva {r.id_reserva} | Estado: {r.estado} | {r.cliente.nombre} | {r.servicio.nombre} | Costo: ${r.costo_total}")
+        
+    # Operación 11: Aporte Individual - Prueba de cancelación válida
+    sistema.cancelar_reserva(1)
+
+    # Operación 12: Aporte Individual - Prueba de cancelación con error controlado
+    sistema.cancelar_reserva(999)    
